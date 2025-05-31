@@ -18,7 +18,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 configure_file(${CMAKE_SOURCE_DIR}/tests/test_trades.csv ${CMAKE_BINARY_DIR}/test_trades.csv COPYONLY)
 
 # Add main executable
-add_executable(${PROJECT_NAME} src/main.cpp src/models/position.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp src/models/position.cpp src/models/accountant.cpp)
 
 # Add test executable
 add_executable(pnl_calculator_tests
@@ -28,6 +28,7 @@ add_executable(pnl_calculator_tests
     tests/fifo_test.cpp
     tests/lifo_test.cpp
     src/models/position.cpp
+    src/models/accountant.cpp
 )
 
 # Link test executable with GTest

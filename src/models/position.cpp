@@ -106,15 +106,4 @@ namespace position
                       << trade.getPrice() << std::endl;
         }
     }
-
-    std::optional<double> Positions::addTrade(const Trade &trade, AccountingMethod method)
-    {
-        return positions_[trade.getSymbol().getSymbol()].addTrade(trade, method);
-    }
-
-    Position &Positions::getPosition(const std::string &symbol)
-    {
-        return positions_[symbol];
-    }
-
 } // namespace position

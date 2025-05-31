@@ -1,9 +1,11 @@
 #include <gtest/gtest.h>
-#include "../include/models/position.hpp"
+#include "../include/models/accountant.hpp"
 #include "../include/models/trade.hpp"
 #include "../include/models/symbol.hpp"
 #include "../include/models/side.hpp"
+#include "../include/models/accounting_method.hpp"
 
+using namespace accountant;
 using namespace position;
 
 TEST(LifoTest, LIFOPnLCalculation)
@@ -53,29 +55,29 @@ TEST(LifoTest, LIFOPnLCalculation)
 
 TEST(LifoTest, LIFOMultipleSymbols)
 {
-    Positions positions(AccountingMethod::LIFO);
+    Accountant accountant(AccountingMethod::LIFO);
     TradeSymbol aapl("AAPL");
     TradeSymbol msft("MSFT");
 
     // Add trades for AAPL
     Trade aaplBuy1(aapl, Side::BUY, 100, 150.0, 1);
     Trade aaplSell1(aapl, Side::SELL, 50, 160.0, 2);
-    std::optional<double> pnl1 = positions.addTrade(aaplBuy1, AccountingMethod::LIFO);
-    std::optional<double> pnl2 = positions.addTrade(aaplSell1, AccountingMethod::LIFO);
+    std::optional<double> pnl1 = accountant.addTrade(aaplBuy1, AccountingMethod::LIFO);
+    std::optional<double> pnl2 = accountant.addTrade(aaplSell1, AccountingMethod::LIFO);
 
     // Add trades for MSFT
     Trade msftBuy1(msft, Side::BUY, 200, 300.0, 3);
     Trade msftSell1(msft, Side::SELL, 100, 310.0, 4);
-    std::optional<double> pnl3 = positions.addTrade(msftBuy1, AccountingMethod::LIFO);
-    std::optional<double> pnl4 = positions.addTrade(msftSell1, AccountingMethod::LIFO);
+    std::optional<double> pnl3 = accountant.addTrade(msftBuy1, AccountingMethod::LIFO);
+    std::optional<double> pnl4 = accountant.addTrade(msftSell1, AccountingMethod::LIFO);
 
     // Verify AAPL position
-    EXPECT_EQ(positions.getPosition("AAPL").getCurrentPosition(), 50);
+    EXPECT_EQ(accountant.getPosition("AAPL").getCurrentPosition(), 50);
     EXPECT_EQ(pnl1, std::nullopt);         // Not a closing trade
     EXPECT_DOUBLE_EQ(pnl2.value(), 500.0); // (160 - 150) * 50
 
     // Verify MSFT position
-    EXPECT_EQ(positions.getPosition("MSFT").getCurrentPosition(), 100);
+    EXPECT_EQ(accountant.getPosition("MSFT").getCurrentPosition(), 100);
     EXPECT_EQ(pnl3, std::nullopt);          // Not a closing trade
     EXPECT_DOUBLE_EQ(pnl4.value(), 1000.0); // (310 - 300) * 100
 }
