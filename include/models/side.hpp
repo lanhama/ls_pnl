@@ -24,4 +24,17 @@ inline Side sideFromString(const std::string &side)
     throw std::invalid_argument("Invalid side: " + side);
 }
 
+inline std::string sideToString(Side side)
+{
+    if (side == Side::BUY)
+    {
+        return "B";
+    }
+    else if (side == Side::SELL)
+    {
+        return "S";
+    }
+    return "";
+}
+
 #endif // SIDE_HPP
