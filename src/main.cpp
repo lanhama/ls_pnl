@@ -10,16 +10,14 @@ int main(int argc, char *argv[])
         auto args = CommandLineParser::parse(argc, argv);
         auto trades = CSVTradeParser::parseFile(args.csvPath);
 
-        std::cout << "Successfully parsed " << trades.size() << " trades\n";
-        std::cout << "Using " << (args.method == AccountingMethod::FIFO ? "FIFO" : "LIFO") << " method\n";
-
         accountant::Accountant accountant(args.method);
+        std::cout << "TIMESTAMP,SYMBOL,PNL" << std::endl;
         for (const auto &trade : trades)
         {
             std::optional<double> pnl = accountant.addTrade(trade, args.method);
             if (pnl.has_value())
             {
-                std::cout << trade.getTimestamp() << " $" << pnl.value() << std::endl;
+                std::cout << trade.getTimestamp() << "," << trade.getSymbol().getSymbol() << "," << std::fixed << std::setprecision(2) << pnl.value() << std::endl;
             }
         }
     }
