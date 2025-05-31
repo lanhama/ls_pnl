@@ -24,6 +24,7 @@ add_executable(${PROJECT_NAME} src/main.cpp)
 add_executable(pnl_calculator_tests
     tests/main.cpp
     tests/csv_parser_test.cpp
+    tests/command_line_parser_test.cpp
 )
 
 # Link test executable with GTest
