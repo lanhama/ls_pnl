@@ -1,6 +1,6 @@
 # Trading Position System
 
-A C++ system for managing trading positions with support for FIFO and LIFO accounting methods.
+A C++ system for parsing trade files with support for FIFO and LIFO accounting methods.
 
 ## Prerequisites
 
