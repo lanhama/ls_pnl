@@ -5,7 +5,7 @@
 namespace position
 {
 
-    std::optional<double> Position::addTrade(const Trade &trade)
+    std::optional<double> Position::addTrade(const Trade &trade, AccountingMethod method)
     {
         std::optional<double> tradePnL = std::nullopt;
 
@@ -19,23 +19,27 @@ namespace position
             int32_t originalQuantity = remainingQuantity;
             int32_t currentPosition = getCurrentPosition();
 
-            // Process trades in FIFO order
             while (remainingQuantity > 0 && !trades_.empty())
             {
-                Trade &oldestTrade = trades_.front();
-                int32_t oldestQuantity = oldestTrade.getSide() == Side::BUY ? static_cast<int32_t>(oldestTrade.getQuantity()) : -static_cast<int32_t>(oldestTrade.getQuantity());
+                Trade &front_trade = trades_.front();
+                int32_t frontQuantity = front_trade.getSide() == Side::BUY ? static_cast<int32_t>(front_trade.getQuantity()) : -static_cast<int32_t>(front_trade.getQuantity());
 
-                int32_t closingQuantity = std::min(remainingQuantity, std::abs(oldestQuantity));
+                int32_t closingQuantity = std::min(remainingQuantity, std::abs(frontQuantity));
 
                 // Calculate P&L for this portion
-                double pnl = closingQuantity * (trade.getPrice() - oldestTrade.getPrice()) * (getCurrentPosition() > 0 ? 1 : -1);
+                // Always use: (sell price - buy price) * quantity
+                // For longs: trade is SELL, front_trade is BUY
+                // For shorts: trade is BUY, front_trade is SELL
+                double sellPrice = trade.getSide() == Side::SELL ? trade.getPrice() : front_trade.getPrice();
+                double buyPrice = trade.getSide() == Side::BUY ? trade.getPrice() : front_trade.getPrice();
+                double pnl = closingQuantity * (sellPrice - buyPrice);
                 tradePnL = tradePnL.has_value() ? tradePnL.value() + pnl : pnl;
 
                 // Update quantities
                 remainingQuantity -= closingQuantity;
 
-                // Update the oldest trade's quantity
-                if (closingQuantity == std::abs(oldestQuantity))
+                // Update the front trade's quantity
+                if (closingQuantity == std::abs(frontQuantity))
                 {
                     // Fully closed trade, remove it
                     trades_.pop_front();
@@ -43,12 +47,12 @@ namespace position
                 else
                 {
                     // Partially closed trade, update its quantity
-                    oldestTrade = Trade(
-                        oldestTrade.getSymbol(),
-                        oldestTrade.getSide(),
-                        oldestTrade.getQuantity() - closingQuantity,
-                        oldestTrade.getPrice(),
-                        oldestTrade.getTimestamp());
+                    front_trade = Trade(
+                        front_trade.getSymbol(),
+                        front_trade.getSide(),
+                        front_trade.getQuantity() - closingQuantity,
+                        front_trade.getPrice(),
+                        front_trade.getTimestamp());
                 }
             }
 
@@ -62,13 +66,21 @@ namespace position
                     std::abs(positionQuantity) - std::abs(currentPosition),
                     trade.getPrice(),
                     trade.getTimestamp());
-                trades_.push_back(excessTrade);
+
+                // We need to add the excess trade to the front or back of the deque depending on the accounting method
+                if (method == AccountingMethod::FIFO)
+                    trades_.push_back(excessTrade);
+                else
+                    trades_.push_front(excessTrade);
             }
         }
         else
         {
             // Opening or adding to position, always add the trade
-            trades_.push_back(trade);
+            if (method == AccountingMethod::FIFO)
+                trades_.push_back(trade);
+            else
+                trades_.push_front(trade);
         }
 
         return tradePnL;
@@ -95,19 +107,14 @@ namespace position
         }
     }
 
-    std::optional<double> Positions::addTrade(const Trade &trade)
+    std::optional<double> Positions::addTrade(const Trade &trade, AccountingMethod method)
     {
-        return positions_[trade.getSymbol().getSymbol()].addTrade(trade);
+        return positions_[trade.getSymbol().getSymbol()].addTrade(trade, method);
     }
 
     Position &Positions::getPosition(const std::string &symbol)
     {
         return positions_[symbol];
-    }
-
-    bool Positions::hasPosition(const std::string &symbol) const
-    {
-        return positions_.find(symbol) != positions_.end();
     }
 
 } // namespace position

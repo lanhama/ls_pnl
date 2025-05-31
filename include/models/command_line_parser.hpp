@@ -1,15 +1,10 @@
 #ifndef COMMAND_LINE_PARSER_HPP
 #define COMMAND_LINE_PARSER_HPP
 
+#include "models/accounting_method.hpp"
 #include <string>
 #include <filesystem>
 #include <stdexcept>
-
-enum class Method
-{
-    FIFO,
-    LIFO
-};
 
 class CommandLineParser
 {
@@ -17,7 +12,7 @@ public:
     struct Arguments
     {
         std::string csvPath;
-        Method method;
+        AccountingMethod method;
     };
 
     static Arguments parse(int argc, char *argv[])
@@ -42,12 +37,12 @@ public:
     }
 
 private:
-    static Method parseMethod(const std::string &method)
+    static AccountingMethod parseMethod(const std::string &method)
     {
         if (method == "fifo")
-            return Method::FIFO;
+            return AccountingMethod::FIFO;
         if (method == "lifo")
-            return Method::LIFO;
+            return AccountingMethod::LIFO;
         throw std::invalid_argument("Method must be either 'fifo' or 'lifo'");
     }
 };

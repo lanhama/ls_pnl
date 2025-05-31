@@ -1,6 +1,7 @@
 #pragma once
 
 #include "models/trade.hpp"
+#include "models/accounting_method.hpp"
 #include <map>
 #include <string>
 #include <vector>
@@ -18,7 +19,7 @@ namespace position
 
         // Add a trade to this position
         // Returns the PnL generated from this trade (std::nullopt if not a closing trade)
-        std::optional<double> addTrade(const Trade &trade);
+        std::optional<double> addTrade(const Trade &trade, AccountingMethod method);
 
         void printTrades() const;
 
@@ -32,21 +33,19 @@ namespace position
     class Positions
     {
     public:
-        Positions() = default;
+        Positions(AccountingMethod method) : method_(method) {}
         ~Positions() = default;
 
         // Add a trade to the appropriate position
         // Returns the PnL generated from this trade (std::nullopt if not a closing trade)
-        std::optional<double> addTrade(const Trade &trade);
+        std::optional<double> addTrade(const Trade &trade, AccountingMethod method);
 
         // Get a position by symbol
         Position &getPosition(const std::string &symbol);
 
-        // Check if a position exists for a symbol
-        bool hasPosition(const std::string &symbol) const;
-
     private:
         std::map<std::string, Position> positions_;
+        AccountingMethod method_;
     };
 
 } // namespace position

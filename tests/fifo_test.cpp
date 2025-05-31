@@ -6,7 +6,7 @@
 
 using namespace position;
 
-TEST(PositionTest, FIFOPnLCalculation)
+TEST(FifoTest, FIFOPnLCalculation)
 {
     // Create a position
     Position position;
@@ -17,16 +17,16 @@ TEST(PositionTest, FIFOPnLCalculation)
     Trade buy2(symbol, Side::BUY, 50, 160.0, 2);  // Buy 50 @ $160
     Trade buy3(symbol, Side::BUY, 75, 155.0, 3);  // Buy 75 @ $155
 
-    std::optional<double> pnl1 = position.addTrade(buy1);
-    std::optional<double> pnl2 = position.addTrade(buy2);
-    std::optional<double> pnl3 = position.addTrade(buy3);
+    std::optional<double> pnl1 = position.addTrade(buy1, AccountingMethod::FIFO);
+    std::optional<double> pnl2 = position.addTrade(buy2, AccountingMethod::FIFO);
+    std::optional<double> pnl3 = position.addTrade(buy3, AccountingMethod::FIFO);
 
     // Verify position size
     EXPECT_EQ(position.getCurrentPosition(), 225); // 100 + 50 + 75
 
     // Add a sell trade that partially closes the position
     Trade sell1(symbol, Side::SELL, 120, 165.0, 4); // Sell 120 @ $165
-    std::optional<double> pnl4 = position.addTrade(sell1);
+    std::optional<double> pnl4 = position.addTrade(sell1, AccountingMethod::FIFO);
 
     // Verify position size after partial close
     EXPECT_EQ(position.getCurrentPosition(), 105); // 225 - 120
@@ -39,7 +39,7 @@ TEST(PositionTest, FIFOPnLCalculation)
 
     // Add another sell trade to close the remaining position
     Trade sell2(symbol, Side::SELL, 105, 170.0, 5); // Sell 105 @ $170
-    std::optional<double> pnl5 = position.addTrade(sell2);
+    std::optional<double> pnl5 = position.addTrade(sell2, AccountingMethod::FIFO);
 
     // Verify position is closed
     EXPECT_EQ(position.getCurrentPosition(), 0);
@@ -51,23 +51,23 @@ TEST(PositionTest, FIFOPnLCalculation)
     EXPECT_DOUBLE_EQ(pnl5.value(), 1425.0);
 }
 
-TEST(PositionTest, MultipleSymbols)
+TEST(FifoTest, MultipleSymbols)
 {
-    Positions positions;
+    Positions positions(AccountingMethod::FIFO);
     TradeSymbol aapl("AAPL");
     TradeSymbol msft("MSFT");
 
     // Add trades for AAPL
     Trade aaplBuy1(aapl, Side::BUY, 100, 150.0, 1);
     Trade aaplSell1(aapl, Side::SELL, 50, 160.0, 2);
-    std::optional<double> pnl1 = positions.addTrade(aaplBuy1);
-    std::optional<double> pnl2 = positions.addTrade(aaplSell1);
+    std::optional<double> pnl1 = positions.addTrade(aaplBuy1, AccountingMethod::FIFO);
+    std::optional<double> pnl2 = positions.addTrade(aaplSell1, AccountingMethod::FIFO);
 
     // Add trades for MSFT
     Trade msftBuy1(msft, Side::BUY, 200, 300.0, 3);
     Trade msftSell1(msft, Side::SELL, 100, 310.0, 4);
-    std::optional<double> pnl3 = positions.addTrade(msftBuy1);
-    std::optional<double> pnl4 = positions.addTrade(msftSell1);
+    std::optional<double> pnl3 = positions.addTrade(msftBuy1, AccountingMethod::FIFO);
+    std::optional<double> pnl4 = positions.addTrade(msftSell1, AccountingMethod::FIFO);
 
     // Verify AAPL position
     EXPECT_EQ(positions.getPosition("AAPL").getCurrentPosition(), 50);

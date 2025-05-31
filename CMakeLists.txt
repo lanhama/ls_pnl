@@ -26,6 +26,7 @@ add_executable(pnl_calculator_tests
     tests/csv_parser_test.cpp
     tests/command_line_parser_test.cpp
     tests/fifo_test.cpp
+    tests/lifo_test.cpp
     src/models/position.cpp
 )
 
